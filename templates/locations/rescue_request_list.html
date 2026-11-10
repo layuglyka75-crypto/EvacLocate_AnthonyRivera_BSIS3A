@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Rescue requests | EvacLocate{% endblock %}
+{% block page_heading %}Rescue Requests{% endblock %}
+
+{% block content %}
+<div class="page-heading">
+    <div><p class="eyebrow">Emergency response</p><h1>Rescue Requests</h1><p class="intro">{% if is_admin %}Review requests and update them as response teams are assigned.{% else %}Request help and track the status of your own requests.{% endif %}</p></div>
+    <a class="button" href="{% url 'rescue-request-create' %}">Request assistance</a>
+</div>
+<div class="record-list">
+    {% for rescue in requests %}
+        <article class="record-card rescue-record">
+            <div class="record-card-heading">
+                <div><span class="condition {% if rescue.severity == 'critical' %}condition-critical{% elif rescue.severity == 'urgent' %}condition-watch{% endif %}">{{ rescue.get_severity_display }}</span><h2>{{ rescue.get_request_type_display }} · {{ rescue.barangay|default:rescue.location_details }}</h2></div>
+                <span class="status {% if rescue.status == 'pending' %}status-full{% elif rescue.status == 'cancelled' %}status-closed{% endif %}">{{ rescue.get_status_display }}</span>
+            </div>
+            <p class="muted">{{ rescue.location_details }} · {{ rescue.people_count }} person{{ rescue.people_count|pluralize }} · Contact: {{ rescue.contact_number }}</p>
+            <p>{{ rescue.details|linebreaksbr }}</p>
+            <div class="record-meta"><span>Requested by {{ rescue.requester.username }}</span><span>{{ rescue.created_at|date:"M j, Y, H:i" }}</span></div>
+            {% if is_admin or rescue.requester_id == user.id %}
+                <div class="card-actions"><a href="{% url 'rescue-request-update' rescue.pk %}">{% if is_admin %}Update response{% else %}Edit{% endif %}</a><a class="danger-link" href="{% url 'rescue-request-delete' rescue.pk %}">Delete</a></div>
+            {% endif %}
+        </article>
+    {% empty %}
+        <section class="empty-state"><div class="empty-icon" aria-hidden="true">✚</div><h2>No rescue requests</h2><p>For an urgent emergency, contact your local emergency services directly. You can also submit a request here.</p><a class="button" href="{% url 'rescue-request-create' %}">Request assistance</a></section>
+    {% endfor %}
+</div>
+{% endblock %}

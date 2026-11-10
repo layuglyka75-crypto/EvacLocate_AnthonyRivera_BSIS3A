@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}EvacLocate{% endblock %}</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/site.css' %}">
+</head>
+<body>
+    {% if user.is_authenticated %}
+        <div class="app-shell">
+            <aside class="sidebar">
+                <a class="brand" href="{% url 'dashboard' %}"><span class="brand-mark">E</span> EvacLocate</a>
+                <p class="sidebar-label">WORKSPACE</p>
+                <nav class="sidebar-nav" aria-label="Main navigation">
+                    <a class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}"><span class="nav-icon">⌂</span> Dashboard</a>
+                    {% if user.is_staff %}
+                        <a class="{% if 'user-' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'user-management' %}"><span class="nav-icon">♙</span> User Management</a>
+                    {% endif %}
+                    <a class="{% if request.resolver_match.url_name == 'center-list' %}active{% endif %}" href="{% url 'center-list' %}"><span class="nav-icon">⌖</span> Evacuation Centers</a>
+                    <a class="{% if 'flood-report' in request.resolver_match.url_name or request.resolver_match.url_name == 'flood-reports' %}active{% endif %}" href="{% url 'flood-reports' %}"><span class="nav-icon">≋</span> Flood Reports</a>
+                    <a class="{% if 'rescue-request' in request.resolver_match.url_name or request.resolver_match.url_name == 'rescue-requests' %}active{% endif %}" href="{% url 'rescue-requests' %}"><span class="nav-icon">✚</span> Rescue Request</a>
+                    <a class="{% if 'suppl' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'emergency-supplies' %}"><span class="nav-icon">▣</span> Emergency Supplies</a>
+                    {% if user.is_staff %}
+                        <a href="{% url 'admin-profile' %}"><span class="nav-icon">⚙</span> Profile</a>
+                    {% endif %}
+                </nav>
+                <div class="sidebar-bottom">
+                    <div class="sidebar-user"><span class="user-avatar">{{ user.username|first|upper }}</span><span><strong>{{ user.get_full_name|default:user.username }}</strong><small>{% if user.is_staff %}Administrator{% else %}Response account{% endif %}</small></span></div>
+                    <form action="{% url 'logout' %}" method="post">
+                        {% csrf_token %}
+                        <button class="sidebar-logout" type="submit"><span class="nav-icon">↪</span> Logout</button>
+                    </form>
+                </div>
+            </aside>
+            <div class="app-main">
+                <header class="topbar"><span class="topbar-title">{% block page_heading %}Response workspace{% endblock %}</span><span class="topbar-status"><i></i> Response system</span></header>
+                <main class="container">
+    {% else %}
+        <header class="site-header">
+            <a class="brand" href="{% url 'login' %}">EvacLocate</a>
+            <nav aria-label="Main navigation">
+                <a href="{% url 'login' %}">Log in</a>
+                <a href="{% url 'register' %}">Create account</a>
+                <a href="{% url 'admin-login' %}">Admin log in</a>
+            </nav>
+        </header>
+        <main class="container">
+    {% endif %}
+        {% if messages %}
+            <div class="messages" aria-live="polite">
+                {% for message in messages %}
+                    <p class="message {{ message.tags }}">{{ message }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+        {% block content %}{% endblock %}
+    </main>
+    {% if user.is_authenticated %}
+            <footer class="site-footer">EvacLocate · Community response workspace</footer>
+        </div>
+    {% else %}
+        <footer class="site-footer">Evacuation information, organized.</footer>
+    {% endif %}
+</body>
+</html>

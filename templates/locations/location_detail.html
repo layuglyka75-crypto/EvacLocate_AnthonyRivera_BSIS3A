@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}{{ location.name }} | EvacLocate{% endblock %}
+
+{% block content %}
+<p class="eyebrow"><a href="{% url 'location-list' %}">← My locations</a></p>
+<article class="detail-card">
+    <div class="card-topline">
+        <span class="status status-{{ location.status }}">{{ location.get_status_display }}</span>
+        <span class="capacity">Capacity: {{ location.capacity }}</span>
+    </div>
+    <h1>{{ location.name }}</h1>
+    <p class="address">{{ location.address }}</p>
+    {% if location.description %}
+        <div class="detail-description">{{ location.description|linebreaks }}</div>
+    {% endif %}
+    <p class="muted">Last updated {{ location.updated_at|date:"M j, Y, P" }}</p>
+    <div class="card-actions">
+        <a class="button" href="{% url 'location-update' location.pk %}">Edit location</a>
+        <a class="button button-outline" href="{% url 'location-delete' location.pk %}">Delete</a>
+    </div>
+</article>
+{% endblock %}

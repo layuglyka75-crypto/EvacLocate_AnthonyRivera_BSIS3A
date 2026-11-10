@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Flood reports | EvacLocate{% endblock %}
+{% block page_heading %}Flood Reports{% endblock %}
+
+{% block content %}
+<div class="page-heading">
+    <div><p class="eyebrow">Community reporting</p><h1>Flood Reports</h1><p class="intro">{% if is_admin %}Review and update reported flooding across all barangays.{% else %}Submit flooding reports and track the reports you sent.{% endif %}</p></div>
+    <a class="button" href="{% url 'flood-report-create' %}">Report flooding</a>
+</div>
+<div class="record-list">
+    {% for report in reports %}
+        <article class="record-card">
+            <div class="record-card-heading">
+                <div><span class="condition {% if report.severity == 'critical' or report.severity == 'high' %}condition-critical{% elif report.severity == 'moderate' %}condition-watch{% endif %}">{{ report.get_severity_display }}</span><h2>{{ report.barangay|default:report.location_details }}</h2></div>
+                <span class="status">{{ report.get_status_display }}</span>
+            </div>
+            <p class="muted">{{ report.location_details }}{% if report.water_depth_cm %} · Water depth: {{ report.water_depth_cm }} cm{% endif %}{% if report.affected_people %} · People affected: {{ report.affected_people }}{% endif %}</p>
+            <p>{{ report.description|linebreaksbr }}</p>
+            <div class="record-meta"><span>Reported by {{ report.reporter.username }}</span><span>{{ report.created_at|date:"M j, Y, H:i" }}</span></div>
+            {% if is_admin or report.reporter_id == user.id %}
+                <div class="card-actions"><a href="{% url 'flood-report-update' report.pk %}">{% if is_admin %}Review / update{% else %}Edit{% endif %}</a><a class="danger-link" href="{% url 'flood-report-delete' report.pk %}">Delete</a></div>
+            {% endif %}
+        </article>
+    {% empty %}
+        <section class="empty-state"><div class="empty-icon" aria-hidden="true">≋</div><h2>No flood reports yet</h2><p>Report local flooding to help the response team understand conditions.</p><a class="button" href="{% url 'flood-report-create' %}">Submit a report</a></section>
+    {% endfor %}
+</div>
+{% endblock %}

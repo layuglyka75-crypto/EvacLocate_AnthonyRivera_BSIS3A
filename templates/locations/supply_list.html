@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Emergency supplies | EvacLocate{% endblock %}
+{% block page_heading %}Emergency Supplies{% endblock %}
+
+{% block content %}
+<div class="page-heading">
+    <div><p class="eyebrow">Resource inventory</p><h1>Emergency Supplies</h1><p class="intro">Check available supplies and their distribution centers.</p></div>
+    {% if is_admin %}<a class="button" href="{% url 'supply-create' %}">Add supply</a>{% endif %}
+</div>
+<div class="location-grid">
+    {% for supply in supplies %}
+        <article class="location-card supply-card">
+            <div class="card-topline"><span class="status {% if supply.status == 'low' %}status-full{% elif supply.status == 'out' %}status-closed{% endif %}">{{ supply.get_status_display }}</span><span class="capacity">Updated {{ supply.updated_at|date:"M j" }}</span></div>
+            <h2>{{ supply.name }}</h2>
+            <p class="supply-quantity">{{ supply.quantity }} <span>{{ supply.unit }}</span></p>
+            <p class="address">{% if supply.center %}{{ supply.center.name }} · {{ supply.center.address }}{% else %}Distribution center not specified{% endif %}</p>
+            {% if supply.notes %}<p class="description">{{ supply.notes }}</p>{% endif %}
+            {% if is_admin %}<div class="card-actions"><a href="{% url 'supply-update' supply.pk %}">Edit</a><a class="danger-link" href="{% url 'supply-delete' supply.pk %}">Delete</a></div>{% endif %}
+        </article>
+    {% empty %}
+        <section class="empty-state"><div class="empty-icon" aria-hidden="true">▣</div><h2>No supplies listed</h2><p>Current emergency supplies will appear here when added by an administrator.</p></section>
+    {% endfor %}
+</div>
+{% endblock %}

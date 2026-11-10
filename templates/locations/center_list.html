@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Evacuation centers | EvacLocate{% endblock %}
+{% block page_heading %}Evacuation Centers{% endblock %}
+
+{% block content %}
+<div class="page-heading">
+    <div><p class="eyebrow">Find help nearby</p><h1>Evacuation Centers</h1><p class="intro">Browse current shelter locations and their availability.</p></div>
+    {% if is_admin %}<a class="button" href="{% url 'center-create' %}">Add center</a>{% endif %}
+</div>
+<section class="map-panel center-map-panel" aria-label="Evacuation center map">
+    <div class="section-heading">
+        <div><p class="eyebrow">Find a shelter</p><h2>Evacuation center map</h2></div>
+        <span class="muted">{{ map_centers|length }} mapped</span>
+    </div>
+    {% if map_centers %}
+        <div id="center-map" class="response-map center-map" aria-label="Map of evacuation centers"></div>
+        <div class="map-legend">
+            <span><i class="legend-dot normal"></i> Available</span>
+            <span><i class="legend-dot watch"></i> Full</span>
+            <span><i class="legend-dot critical"></i> Closed</span>
+        </div>
+    {% else %}
+        <div class="map-empty">
+            <span class="map-empty-icon" aria-hidden="true">⌖</span>
+            <h3>No evacuation center coordinates yet</h3>
+            <p>{% if is_admin %}Add latitude and longitude when creating or editing a center to show it on the map.{% else %}The response team has not added map coordinates for centers yet.{% endif %}</p>
+        </div>
+    {% endif %}
+</section>
+<div class="location-grid">
+    {% for center in centers %}
+        <article class="location-card">
+            <div class="card-topline"><span class="status status-{{ center.status }}">{{ center.get_status_display }}</span><span class="capacity">Capacity: {{ center.capacity }}</span></div>
+            <h2><a href="{% url 'center-detail' center.pk %}">{{ center.name }}</a></h2>
+            <p class="address">{{ center.address }}</p>
+            {% if center.description %}<p class="description">{{ center.description }}</p>{% endif %}
+            <p class="muted">Updated {{ center.updated_at|date:"M j, Y" }}</p>
+            {% if is_admin %}<div class="card-actions"><a href="{% url 'center-update' center.pk %}">Edit</a><a class="danger-link" href="{% url 'center-delete' center.pk %}">Delete</a></div>{% endif %}
+        </article>
+    {% empty %}
+        <section class="empty-state"><div class="empty-icon" aria-hidden="true">⌖</div><h2>No centers listed</h2><p>Evacuation centers will appear here when they are added by the response team.</p></section>
+    {% endfor %}
+</div>
+{{ map_centers|json_script:"center-map-features" }}
+{% if map_centers %}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="{% static 'js/center-map.js' %}" defer></script>
+{% endif %}
+{% endblock %}

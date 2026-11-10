@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}{% if object %}Edit{% else %}Add{% endif %} location | EvacLocate{% endblock %}
+
+{% block content %}
+<section class="form-card wide-card">
+    <p class="eyebrow">{% if object %}Update details{% else %}Grow your directory{% endif %}</p>
+    <h1>{% if object %}Edit location{% else %}Add an evacuation location{% endif %}</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <div class="form-actions">
+            <button class="button" type="submit">Save location</button>
+            <a class="button button-outline" href="{% url 'location-list' %}">Cancel</a>
+        </div>
+    </form>
+</section>
+{% endblock %}

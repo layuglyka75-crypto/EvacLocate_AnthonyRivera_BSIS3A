@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Administrator registration | EvacLocate{% endblock %}
+
+{% block content %}
+<section class="form-card">
+    <p class="eyebrow">Authorized staff only</p>
+    <h1>Administrator registration</h1>
+    <p class="intro login-intro">Create a staff account using a one-time invitation code from the system operator.</p>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button class="button" type="submit">Register as administrator</button>
+    </form>
+    <p class="form-note">Already registered? <a href="{% url 'admin-login' %}">Administrator log in</a></p>
+</section>
+{% endblock %}

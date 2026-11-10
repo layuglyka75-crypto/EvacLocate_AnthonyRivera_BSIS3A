@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ center.name }} | EvacLocate{% endblock %}
+{% block page_heading %}Evacuation Center{% endblock %}
+
+{% block content %}
+<p class="eyebrow"><a href="{% url 'center-list' %}">← All evacuation centers</a></p>
+<article class="detail-card center-detail-card">
+    <div class="card-topline">
+        <span class="status status-{{ center.status }}">{{ center.get_status_display }}</span>
+        <span class="capacity">Capacity: {{ center.capacity }}</span>
+    </div>
+    <h1>{{ center.name }}</h1>
+    <p class="address">{{ center.address }}</p>
+    {% if center.description %}<div class="detail-description">{{ center.description|linebreaks }}</div>{% endif %}
+    {% if center_map_feature %}
+        <div class="center-coordinate-map" id="center-detail-map" aria-label="Map showing {{ center.name }}"></div>
+        {{ center_map_feature|json_script:"center-detail-feature" }}
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+        <script src="{% static 'js/center-detail-map.js' %}" defer></script>
+    {% else %}
+        <div class="map-empty center-no-coordinate"><p>Map coordinates have not been added for this center.</p></div>
+    {% endif %}
+    <p class="muted">Last updated {{ center.updated_at|date:"M j, Y, P" }}</p>
+    {% if user.is_staff %}
+        <div class="card-actions">
+            <a class="button" href="{% url 'center-update' center.pk %}">Edit center</a>
+            <a class="button button-outline" href="{% url 'center-delete' center.pk %}">Delete center</a>
+        </div>
+    {% endif %}
+</article>
+{% if center.emergency_supplies.all %}
+    <section class="dashboard-section center-supplies">
+        <div class="section-heading"><div><p class="eyebrow">Resources</p><h2>Supplies at this center</h2></div></div>
+        <div class="location-grid">
+            {% for supply in center.emergency_supplies.all %}
+                <article class="location-card">
+                    <div class="card-topline"><span class="status {% if supply.status == 'low' %}status-full{% elif supply.status == 'out' %}status-closed{% endif %}">{{ supply.get_status_display }}</span></div>
+                    <h2>{{ supply.name }}</h2>
+                    <p class="supply-quantity">{{ supply.quantity }} <span>{{ supply.unit }}</span></p>
+                </article>
+            {% endfor %}
+        </div>
+    </section>
+{% endif %}
+{% endblock %}

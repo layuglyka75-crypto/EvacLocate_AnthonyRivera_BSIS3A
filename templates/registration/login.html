@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Log in | EvacLocate{% endblock %}
+
+{% block content %}
+<section class="form-card">
+    <p class="eyebrow">Community account</p>
+    <h1>User log in</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+        <button class="button" type="submit">Log in as a user</button>
+    </form>
+    <p class="form-note">New to EvacLocate? <a href="{% url 'register' %}">Create a user account</a></p>
+    <p class="form-note">Staff member? <a href="{% url 'admin-login' %}">Administrator log in</a></p>
+</section>
+{% endblock %}

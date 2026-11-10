@@ -1,0 +1,250 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Response dashboard | EvacLocate{% endblock %}
+
+{% block content %}
+<div class="dashboard-heading">
+    <div>
+        <p class="eyebrow">Disaster response overview</p>
+        <h1>Response dashboard</h1>
+        <p class="intro">Incident and barangay information entered by your response team.</p>
+    </div>
+    <div class="live-indicator"><span class="live-dot"></span> Admin-managed updates <span class="live-separator">·</span> refreshes every 30 sec</div>
+</div>
+
+<section class="overview-section" aria-label="Dashboard overview">
+    <div class="section-heading">
+        <div><p class="eyebrow">At a glance</p><h2>Dashboard Overview</h2></div>
+    </div>
+    <div class="metrics-grid overview-grid">
+        {% if is_admin %}<a class="metric-card overview-link" href="{% url 'user-management' %}">{% else %}<div class="metric-card overview-link">{% endif %}
+            <span class="metric-label">Total Registered Users</span>
+            <strong class="metric-value" data-metric="registered-users">{{ registered_users_count }}</strong>
+            <span class="metric-note">{% if is_admin %}Manage user accounts →{% else %}Community accounts{% endif %}</span>
+        {% if is_admin %}</a>{% else %}</div>{% endif %}
+        <a class="metric-card overview-link" href="{% url 'center-list' %}">
+            <span class="metric-label">Total Evacuation Centers</span>
+            <strong class="metric-value" data-metric="evacuation-centers">{{ evacuation_centers_count }}</strong>
+            <span class="metric-note">View available centers →</span>
+        </a>
+        <a class="metric-card overview-link metric-alert" href="{% url 'rescue-requests' %}">
+            <span class="metric-label">Pending Rescue Requests</span>
+            <strong class="metric-value" data-metric="pending-rescue-requests">{{ pending_rescue_requests_count }}</strong>
+            <span class="metric-note">Open requests needing response</span>
+        </a>
+        <a class="metric-card overview-link metric-alert" href="{% url 'flood-reports' %}">
+            <span class="metric-label">Reported Flood Incidents</span>
+            <strong class="metric-value" data-metric="reported-flood-incidents">{{ reported_flood_incidents_count }}</strong>
+            <span class="metric-note">Unresolved flood reports</span>
+        </a>
+    </div>
+</section>
+
+<section class="map-panel" aria-label="Barangay map">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Situation map</p>
+            <h2>Barangay overview</h2>
+        </div>
+        <span class="muted">{{ map_barangays|length }} mapped</span>
+    </div>
+    {% if map_barangays %}
+        <div id="response-map" class="response-map" aria-label="Map of barangays and response conditions"></div>
+        <div class="map-legend">
+            <span><i class="legend-dot normal"></i> Normal</span>
+            <span><i class="legend-dot watch"></i> Watch</span>
+            <span><i class="legend-dot critical"></i> Critical</span>
+        </div>
+    {% else %}
+        <div class="map-empty">
+            <span class="map-empty-icon" aria-hidden="true">⌖</span>
+            <h3>Map coordinates not set</h3>
+            <p>Add latitude and longitude to barangays in the admin area to show them on the map. The map will not guess their locations.</p>
+            {% if is_admin %}<a href="{% url 'admin:locations_barangay_changelist' %}">Configure barangays</a>{% endif %}
+        </div>
+    {% endif %}
+</section>
+
+<section class="dashboard-section latest-reports">
+    <div class="section-heading">
+        <div><p class="eyebrow">Community reports</p><h2>Recent flood reports</h2></div>
+        <a class="small-action" href="{% url 'flood-reports' %}">View all reports →</a>
+    </div>
+    {% if recent_flood_reports %}
+        <div class="incident-list">
+            {% for report in recent_flood_reports %}
+                <article class="incident-card severity-{% if report.severity == 'critical' or report.severity == 'high' %}critical{% elif report.severity == 'low' %}info{% else %}warning{% endif %}">
+                    <div class="incident-heading"><span class="incident-kind">{{ report.get_severity_display }} flood report</span><span class="severity-label">{{ report.get_status_display }}</span></div>
+                    <h3>{{ report.barangay|default:report.location_details }}</h3>
+                    <p>{{ report.description|truncatewords:24 }}</p>
+                    <div class="incident-meta"><span>{% if is_admin %}Reported by {{ report.reporter.username }}{% else %}Your report{% endif %}</span><span>{{ report.created_at|date:"M j, H:i" }}</span></div>
+                </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="compact-empty">No flood reports have been submitted.</div>
+    {% endif %}
+</section>
+
+<section class="metrics-grid" aria-label="Response metrics">
+    <article class="metric-card metric-alert">
+        <span class="metric-label">Active incidents</span>
+        <strong class="metric-value" data-metric="active-incidents">{{ active_incidents_count }}</strong>
+        <span class="metric-note">Unresolved reports</span>
+    </article>
+    <article class="metric-card">
+        <span class="metric-label">Units deployed</span>
+        <strong class="metric-value" data-metric="units-deployed">{{ units_deployed }}</strong>
+        <span class="metric-note">Currently in the field</span>
+    </article>
+    <article class="metric-card">
+        <span class="metric-label">Personnel online</span>
+        <strong class="metric-value" data-metric="personnel-online">{{ personnel_online }}</strong>
+        <span class="metric-note">On deployed units</span>
+    </article>
+    <article class="metric-card">
+        <span class="metric-label">System response</span>
+        <strong class="metric-value metric-response" data-metric="average-response">
+            {% if average_response != None %}{{ average_response }} min{% else %}—{% endif %}
+        </strong>
+        <span class="metric-note">Average time to respond</span>
+    </article>
+</section>
+
+<div class="dashboard-columns">
+    <section class="dashboard-section">
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Live situation</p>
+                <h2>Critical alerts &amp; incidents</h2>
+            </div>
+            {% if is_admin %}<a class="small-action" href="{% url 'admin:locations_incident_add' %}">+ Report incident</a>{% endif %}
+        </div>
+        {% if incidents %}
+            <div class="incident-list">
+                {% for incident in incidents %}
+                    <article class="incident-card severity-{{ incident.severity }}">
+                        <div class="incident-heading">
+                            <span class="incident-kind">{{ incident.get_kind_display }}</span>
+                            <span class="severity-label">{{ incident.get_severity_display }}</span>
+                        </div>
+                        <h3>{{ incident.title }}</h3>
+                        <p>{{ incident.description|truncatewords:28 }}</p>
+                        <div class="incident-meta">
+                            <span>{% if incident.barangay %}{{ incident.barangay.name }}{% else %}Location not specified{% endif %}</span>
+                            <span>{{ incident.get_status_display }} · {{ incident.reported_at|date:"M j, H:i" }}</span>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="compact-empty">No active incidents have been reported.</div>
+        {% endif %}
+    </section>
+
+    <aside class="operations-column">
+        <section class="dashboard-section">
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">Field status</p>
+                    <h2>Barangay conditions</h2>
+                </div>
+                {% if is_admin %}<a class="small-action" href="{% url 'admin:locations_barangay_changelist' %}">Manage</a>{% endif %}
+            </div>
+            {% if barangays %}
+                <div class="barangay-list">
+                    {% for barangay in barangays %}
+                        <article class="barangay-row">
+                            <div class="barangay-top">
+                                <strong>{{ barangay.name }}</strong>
+                                <span class="condition condition-{{ barangay.condition }}">{{ barangay.get_condition_display }}</span>
+                            </div>
+                            <div class="rescue-track" role="progressbar" aria-label="Rescues in {{ barangay.name }}" aria-valuenow="{{ barangay.rescue_percentage }}" aria-valuemin="0" aria-valuemax="100">
+                                <span class="rescue-fill condition-fill-{{ barangay.condition }}" style="width: {{ barangay.rescue_percentage }}%"></span>
+                            </div>
+                            <div class="barangay-meta">
+                                <span>{{ barangay.rescued_people }} / {{ barangay.affected_people }} rescued</span>
+                                <strong>{{ barangay.rescue_percentage }}%</strong>
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="compact-empty">Barangays have not been configured.</div>
+            {% endif %}
+        </section>
+    </aside>
+</div>
+
+<div class="dashboard-columns lower-columns">
+    <section class="dashboard-section">
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Team bulletin</p>
+                <h2>Messages</h2>
+            </div>
+            {% if is_admin %}<a class="small-action" href="{% url 'admin:locations_dashboardmessage_add' %}">+ Add message</a>{% endif %}
+        </div>
+        {% if dashboard_messages %}
+            <ul class="bulletin-list">
+                {% for item in dashboard_messages %}
+                    <li><strong>{{ item.title }}</strong><p>{{ item.body|linebreaksbr }}</p><time>{{ item.updated_at|date:"M j, H:i" }}</time></li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <div class="compact-empty">No current messages.</div>
+        {% endif %}
+    </section>
+    <section class="dashboard-section">
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Don't forget</p>
+                <h2>Important reminders</h2>
+            </div>
+            {% if is_admin %}<a class="small-action" href="{% url 'admin:locations_importantreminder_add' %}">+ Add reminder</a>{% endif %}
+        </div>
+        {% if reminders %}
+            <ul class="reminder-list">
+                {% for reminder in reminders %}
+                    <li>
+                        <span class="reminder-icon" aria-hidden="true">!</span>
+                        <div><strong>{{ reminder.title }}</strong>
+                            {% if reminder.body %}<p>{{ reminder.body }}</p>{% endif %}
+                            {% if reminder.due_at %}<time>Due {{ reminder.due_at|date:"M j, Y, H:i" }}</time>{% endif %}
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <div class="compact-empty">No current reminders.</div>
+        {% endif %}
+    </section>
+</div>
+
+<section class="dashboard-footer">
+    <span>Last updated <time id="last-updated">{{ data_version|default:"No updates yet" }}</time></span>
+    {% if is_admin %}
+        <div class="quick-operations">
+            <strong>Quick operations</strong>
+            <a href="{% url 'admin:locations_incident_changelist' %}">Incidents</a>
+            <a href="{% url 'admin:locations_unitdeployment_changelist' %}">Deployments</a>
+            <a href="{% url 'admin:locations_dashboardmessage_changelist' %}">Messages</a>
+            <a href="{% url 'admin:locations_importantreminder_changelist' %}">Reminders</a>
+            <a href="{% url 'admin-profile' %}">Profile</a>
+        </div>
+    {% endif %}
+</section>
+
+{{ map_features|json_script:"map-features" }}
+<script>
+    window.evacLocateUpdatesUrl = "{% url 'dashboard-updates' %}";
+    window.evacLocateDataVersion = "{{ data_version|escapejs }}";
+</script>
+<script src="{% static 'js/dashboard.js' %}" defer></script>
+{% if map_barangays %}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="{% static 'js/response-map.js' %}" defer></script>
+{% endif %}
+{% endblock %}

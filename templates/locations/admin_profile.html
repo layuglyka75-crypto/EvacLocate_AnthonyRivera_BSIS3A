@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}Admin profile | EvacLocate{% endblock %}
+
+{% block content %}
+<section class="form-card">
+    <p class="eyebrow">Quick operations</p>
+    <h1>Admin profile</h1>
+    <p class="intro profile-intro">Update the contact details for your staff account.</p>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <div class="form-actions">
+            <button class="button" type="submit">Save profile</button>
+            <a class="button button-outline" href="{% url 'dashboard' %}">Back to dashboard</a>
+        </div>
+    </form>
+</section>
+{% endblock %}

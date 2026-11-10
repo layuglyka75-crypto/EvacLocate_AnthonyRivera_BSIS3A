@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Create account | EvacLocate{% endblock %}
+
+{% block content %}
+<section class="form-card">
+    <p class="eyebrow">Get started</p>
+    <h1>Create a user account</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button class="button" type="submit">Register as a user</button>
+    </form>
+    <p class="form-note">Already registered? <a href="{% url 'login' %}">User log in</a></p>
+    <p class="form-note">Staff member? <a href="{% url 'admin-login' %}">Administrator log in</a></p>
+</section>
+{% endblock %}

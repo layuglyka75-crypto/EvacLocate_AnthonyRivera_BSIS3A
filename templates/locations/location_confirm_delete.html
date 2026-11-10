@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Delete {{ object.name }} | EvacLocate{% endblock %}
+
+{% block content %}
+<section class="form-card">
+    <p class="eyebrow">Please confirm</p>
+    <h1>Delete location?</h1>
+    <p>Are you sure you want to delete <strong>{{ object.name }}</strong>? This cannot be undone.</p>
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-actions">
+            <button class="button button-danger" type="submit">Yes, delete</button>
+            <a class="button button-outline" href="{% url 'location-detail' object.pk %}">Cancel</a>
+        </div>
+    </form>
+</section>
+{% endblock %}

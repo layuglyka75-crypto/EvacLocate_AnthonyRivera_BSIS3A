@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}My dashboard | EvacLocate{% endblock %}
+{% block page_heading %}My Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-heading">
+    <div>
+        <p class="eyebrow">Community response</p>
+        <h1>Welcome, {{ user.first_name|default:user.username }}</h1>
+        <p class="intro">Your reports, requests, and local response information in one place.</p>
+    </div>
+    <div class="live-indicator"><span class="live-dot"></span> Community updates</div>
+</div>
+
+<section class="overview-section" aria-label="Your dashboard overview">
+    <div class="section-heading">
+        <div><p class="eyebrow">Your activity</p><h2>Dashboard Overview</h2></div>
+    </div>
+    <div class="metrics-grid user-overview-grid">
+        <a class="metric-card overview-link" href="{% url 'flood-reports' %}">
+            <span class="metric-label">My active flood reports</span>
+            <strong class="metric-value" data-user-metric="flood-reports">{{ open_flood_reports_count }}</strong>
+            <span class="metric-note">Reports not yet resolved</span>
+        </a>
+        <a class="metric-card overview-link metric-alert" href="{% url 'rescue-requests' %}">
+            <span class="metric-label">My open rescue requests</span>
+            <strong class="metric-value" data-user-metric="rescue-requests">{{ open_rescue_requests_count }}</strong>
+            <span class="metric-note">Pending or assigned to a team</span>
+        </a>
+        <a class="metric-card overview-link" href="{% url 'center-list' %}">
+            <span class="metric-label">Available evacuation centers</span>
+            <strong class="metric-value" data-user-metric="centers">{{ available_centers_count }}</strong>
+            <span class="metric-note">Browse center details →</span>
+        </a>
+        <a class="metric-card overview-link" href="{% url 'emergency-supplies' %}">
+            <span class="metric-label">Supplies in stock</span>
+            <strong class="metric-value" data-user-metric="supplies">{{ available_supplies_count }}</strong>
+            <span class="metric-note">Inventory items available</span>
+        </a>
+    </div>
+</section>
+
+<section class="user-actions-grid" aria-label="Quick actions">
+    <a class="user-action-card" href="{% url 'flood-report-create' %}">
+        <span class="user-action-icon flood-icon">≋</span>
+        <span><strong>Report flooding</strong><small>Share current conditions in your barangay</small></span>
+        <span class="user-action-arrow">→</span>
+    </a>
+    <a class="user-action-card user-action-emergency" href="{% url 'rescue-request-create' %}">
+        <span class="user-action-icon rescue-icon">✚</span>
+        <span><strong>Request assistance</strong><small>Send a request to the response team</small></span>
+        <span class="user-action-arrow">→</span>
+    </a>
+    <a class="user-action-card" href="{% url 'center-list' %}">
+        <span class="user-action-icon center-icon">⌖</span>
+        <span><strong>Find a shelter</strong><small>Check evacuation center availability</small></span>
+        <span class="user-action-arrow">→</span>
+    </a>
+</section>
+
+<div class="dashboard-columns user-dashboard-columns">
+    <section class="dashboard-section">
+        <div class="section-heading">
+            <div><p class="eyebrow">Response team notices</p><h2>Community alerts</h2></div>
+        </div>
+        {% if public_alerts %}
+            <div class="incident-list">
+                {% for incident in public_alerts %}
+                    <article class="incident-card severity-{{ incident.severity }}">
+                        <div class="incident-heading"><span class="incident-kind">{{ incident.get_kind_display }}</span><span class="severity-label">{{ incident.get_severity_display }}</span></div>
+                        <h3>{{ incident.title }}</h3>
+                        <p>{{ incident.description|truncatewords:28 }}</p>
+                        <div class="incident-meta"><span>{% if incident.barangay %}{{ incident.barangay.name }}{% else %}Location not specified{% endif %}</span><span>{{ incident.get_status_display }} · {{ incident.reported_at|date:"M j, H:i" }}</span></div>
+                    </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="compact-empty">There are no current public alerts.</div>
+        {% endif %}
+        {% if dashboard_messages %}
+            <div class="user-bulletins">
+                <h3>Messages from the response team</h3>
+                {% for item in dashboard_messages %}
+                    <article><strong>{{ item.title }}</strong><p>{{ item.body|linebreaksbr }}</p><time>{{ item.updated_at|date:"M j, H:i" }}</time></article>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </section>
+
+    <div class="user-records-column">
+        <section class="dashboard-section">
+            <div class="section-heading">
+                <div><p class="eyebrow">Your activity</p><h2>My flood reports</h2></div>
+                <a class="small-action" href="{% url 'flood-reports' %}">View all →</a>
+            </div>
+            {% if my_flood_reports %}
+                <div class="user-status-list">
+                    {% for report in my_flood_reports %}
+                        <a class="user-status-row" href="{% url 'flood-reports' %}">
+                            <span class="user-status-mark flood-mark">≋</span>
+                            <span class="user-status-copy"><strong>{% if report.barangay %}{{ report.barangay.name }} · {% endif %}{{ report.location_details }}</strong><small>{{ report.get_status_display }} · {{ report.created_at|date:"M j" }}</small></span>
+                            <span class="condition {% if report.status == 'resolved' %}condition-normal{% elif report.status == 'responding' or report.status == 'verified' %}condition-watch{% else %}condition-critical{% endif %}">{{ report.get_status_display }}</span>
+                        </a>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="compact-empty">You haven't submitted a flood report yet.</div>
+            {% endif %}
+        </section>
+
+        <section class="dashboard-section">
+            <div class="section-heading">
+                <div><p class="eyebrow">Assistance tracking</p><h2>My rescue requests</h2></div>
+                <a class="small-action" href="{% url 'rescue-requests' %}">View all →</a>
+            </div>
+            {% if my_rescue_requests %}
+                <div class="user-status-list">
+                    {% for rescue in my_rescue_requests %}
+                        <a class="user-status-row" href="{% url 'rescue-requests' %}">
+                            <span class="user-status-mark rescue-mark">✚</span>
+                            <span class="user-status-copy"><strong>{{ rescue.get_request_type_display }} · {% if rescue.barangay %}{{ rescue.barangay.name }} · {% endif %}{{ rescue.location_details }}</strong><small>{{ rescue.get_status_display }} · {{ rescue.created_at|date:"M j" }}</small></span>
+                            <span class="condition {% if rescue.status == 'pending' %}condition-critical{% elif rescue.status == 'assigned' %}condition-watch{% else %}condition-normal{% endif %}">{{ rescue.get_status_display }}</span>
+                        </a>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="compact-empty">You don't have any rescue requests.</div>
+            {% endif %}
+        </section>
+    </div>
+</div>
+
+<div class="dashboard-columns lower-columns user-lower-columns">
+    <section class="dashboard-section">
+        <div class="section-heading"><div><p class="eyebrow">Local situation</p><h2>Barangay conditions</h2></div></div>
+        {% if barangays %}
+            <div class="barangay-list">
+                {% for barangay in barangays %}
+                    <article class="barangay-row">
+                        <div class="barangay-top"><strong>{{ barangay.name }}</strong><span class="condition condition-{{ barangay.condition }}">{{ barangay.get_condition_display }}</span></div>
+                        <div class="rescue-track" role="progressbar" aria-label="Rescues in {{ barangay.name }}" aria-valuenow="{{ barangay.rescue_percentage }}" aria-valuemin="0" aria-valuemax="100">
+                            <span class="rescue-fill condition-fill-{{ barangay.condition }}" style="width: {{ barangay.rescue_percentage }}%"></span>
+                        </div>
+                        <div class="barangay-meta"><span>{{ barangay.rescued_people }} / {{ barangay.affected_people }} rescued</span><strong>{{ barangay.rescue_percentage }}%</strong></div>
+                    </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="compact-empty">Barangay updates are not available yet.</div>
+        {% endif %}
+    </section>
+
+    <section class="dashboard-section">
+        <div class="section-heading"><div><p class="eyebrow">Stay prepared</p><h2>Important reminders</h2></div></div>
+        {% if reminders %}
+            <ul class="reminder-list">
+                {% for reminder in reminders %}
+                    <li><span class="reminder-icon" aria-hidden="true">!</span><div><strong>{{ reminder.title }}</strong>{% if reminder.body %}<p>{{ reminder.body }}</p>{% endif %}{% if reminder.due_at %}<time>Due {{ reminder.due_at|date:"M j, Y, H:i" }}</time>{% endif %}</div></li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <div class="compact-empty">No active reminders at this time.</div>
+        {% endif %}
+    </section>
+</div>
+
+<script>
+    window.evacLocateUpdatesUrl = "{% url 'dashboard-updates' %}";
+</script>
+<script src="{% static 'js/user-dashboard.js' %}" defer></script>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page_title }} | EvacLocate{% endblock %}
+{% block page_heading %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<section class="form-card wide-card record-form-card">
+    <p class="eyebrow">EvacLocate workspace</p>
+    <h1>{{ page_title }}</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <div class="form-actions">
+            <button class="button" type="submit">Save</button>
+            <a class="button button-outline" href="{{ cancel_url|default:'/' }}">Cancel</a>
+        </div>
+    </form>
+</section>
+{% endblock %}

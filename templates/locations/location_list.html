@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}My evacuation locations | EvacLocate{% endblock %}
+
+{% block content %}
+<div class="page-heading">
+    <div>
+        <p class="eyebrow">Your directory</p>
+        <h1>Evacuation locations</h1>
+        <p class="intro">Keep important shelter and evacuation-point details in one place.</p>
+    </div>
+    <a class="button" href="{% url 'location-create' %}">Add a location</a>
+</div>
+
+{% if locations %}
+    <div class="location-grid">
+        {% for location in locations %}
+            <article class="location-card">
+                <div class="card-topline">
+                    <span class="status status-{{ location.status }}">{{ location.get_status_display }}</span>
+                    <span class="capacity">Capacity: {{ location.capacity }}</span>
+                </div>
+                <h2><a href="{% url 'location-detail' location.pk %}">{{ location.name }}</a></h2>
+                <p class="address">{{ location.address }}</p>
+                {% if location.description %}
+                    <p class="description">{{ location.description|truncatewords:24 }}</p>
+                {% endif %}
+                <div class="card-actions">
+                    <a href="{% url 'location-update' location.pk %}">Edit</a>
+                    <a class="danger-link" href="{% url 'location-delete' location.pk %}">Delete</a>
+                </div>
+            </article>
+        {% endfor %}
+    </div>
+{% else %}
+    <section class="empty-state">
+        <div class="empty-icon" aria-hidden="true">+</div>
+        <h2>No locations yet</h2>
+        <p>Add your first evacuation location to start building your directory.</p>
+        <a class="button" href="{% url 'location-create' %}">Add your first location</a>
+    </section>
+{% endif %}
+{% endblock %}

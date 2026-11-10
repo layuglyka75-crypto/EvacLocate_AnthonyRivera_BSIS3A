@@ -1,0 +1,37 @@
+from django.urls import path
+
+from . import views
+
+urlpatterns = [
+    path('', views.DashboardView.as_view(), name='dashboard'),
+    path('dashboard/updates/', views.dashboard_updates, name='dashboard-updates'),
+    path('dashboard/profile/', views.AdminProfileView.as_view(), name='admin-profile'),
+    path('users/', views.UserManagementView.as_view(), name='user-management'),
+    path('users/add/', views.UserCreateView.as_view(), name='user-create'),
+    path('users/register-admin/', views.AdminAccountCreateView.as_view(), name='admin-account-create'),
+    path('users/<int:pk>/edit/', views.UserUpdateView.as_view(), name='user-update'),
+    path('users/<int:pk>/delete/', views.UserDeleteView.as_view(), name='user-delete'),
+    path('centers/', views.EvacuationCenterListView.as_view(), name='center-list'),
+    path('centers/add/', views.CenterCreateView.as_view(), name='center-create'),
+    path('centers/<int:pk>/', views.CenterDetailView.as_view(), name='center-detail'),
+    path('centers/<int:pk>/edit/', views.CenterUpdateView.as_view(), name='center-update'),
+    path('centers/<int:pk>/delete/', views.CenterDeleteView.as_view(), name='center-delete'),
+    path('flood-reports/', views.FloodReportListView.as_view(), name='flood-reports'),
+    path('flood-reports/add/', views.FloodReportCreateView.as_view(), name='flood-report-create'),
+    path('flood-reports/<int:pk>/edit/', views.FloodReportUpdateView.as_view(), name='flood-report-update'),
+    path('flood-reports/<int:pk>/delete/', views.FloodReportDeleteView.as_view(), name='flood-report-delete'),
+    path('rescue-requests/', views.RescueRequestListView.as_view(), name='rescue-requests'),
+    path('rescue-requests/add/', views.RescueRequestCreateView.as_view(), name='rescue-request-create'),
+    path('rescue-requests/<int:pk>/edit/', views.RescueRequestUpdateView.as_view(), name='rescue-request-update'),
+    path('rescue-requests/<int:pk>/delete/', views.RescueRequestDeleteView.as_view(), name='rescue-request-delete'),
+    path('supplies/', views.EmergencySupplyListView.as_view(), name='emergency-supplies'),
+    path('supplies/add/', views.EmergencySupplyCreateView.as_view(), name='supply-create'),
+    path('supplies/<int:pk>/edit/', views.EmergencySupplyUpdateView.as_view(), name='supply-update'),
+    path('supplies/<int:pk>/delete/', views.EmergencySupplyDeleteView.as_view(), name='supply-delete'),
+    path('locations/mine/', views.LocationListView.as_view(), name='location-list'),
+    path('locations/add/', views.LocationCreateView.as_view(), name='location-create'),
+    path('locations/<int:pk>/', views.LocationDetailView.as_view(), name='location-detail'),
+    path('locations/<int:pk>/edit/', views.LocationUpdateView.as_view(), name='location-update'),
+    path('locations/<int:pk>/delete/', views.LocationDeleteView.as_view(), name='location-delete'),
+    path('accounts/register/', views.register, name='register'),
+]
